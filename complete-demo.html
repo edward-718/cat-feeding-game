@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1分钱喂猫咪 - 完整演示</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            width: 100vw;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Microsoft YaHei', sans-serif;
+            color: white;
+            overflow-x: hidden;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+        }
+        .header h1 {
+            color: #ffd700;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        .header p { opacity: 0.8; font-size: 14px; }
+        
+        .game-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .cat-display {
+            text-align: center;
+            padding: 30px;
+            position: relative;
+        }
+        .cat-emoji {
+            font-size: 180px;
+            display: inline-block;
+            text-shadow: 0 0 30px rgba(255,215,0,0.3);
+        }
+        .cat-idle { animation: idle 3s ease-in-out infinite; }
+        .cat-excited { animation: excited 0.4s ease-in-out infinite; }
+        .cat-eating { animation: eating 0.3s ease-in-out infinite; }
+        .cat-evolved { animation: evolved 1s ease-in-out 3; }
+        .cat-eager { animation: eager 0.5s ease-in-out infinite; }
+        
+        @keyframes idle {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-20px) scale(1.02); }
+        }
+        @keyframes eager {
+            0%, 100% { transform: translateY(0) rotate(-5deg) scale(1.05); }
+            50% { transform: translateY(-25px) rotate(5deg) scale(1.1); }
+        }
+        @keyframes excited {
+            0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+            25% { transform: translateY(-30px) rotate(-8deg) scale(1.08); }
+            75% { transform: translateY(-30px) rotate(8deg) scale(1.08); }
+        }
+        @keyframes eating {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.25); }
+        }
+        @keyframes evolved {
+            0% { transform: scale(1); filter: brightness(1) hue-rotate(0deg); }
+            50% { transform: scale(1.6); filter: brightness(2.5) hue-rotate(180deg); }
+            100% { transform: scale(1); filter: brightness(1) hue-rotate(0deg); }
+        }
+        
+        .cat-info-panel {
+            background: rgba(0,0,0,0.6);
+            border-radius: 20px;
+            padding: 25px;
+            margin: 20px auto;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .cat-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .cat-indicator {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0.5;
+            border: 3px solid transparent;
+        }
+        .cat-indicator:hover { opacity: 0.8; transform: scale(1.1); }
+        .cat-indicator.active {
+            opacity: 1;
+            transform: scale(1.2);
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255,215,0,0.5);
+        }
+        
+        .cat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .cat-name { font-size: 22px; font-weight: bold; }
+        .cat-level { font-size: 20px; color: #ffd700; font-weight: bold; }
+        
+        .exp-bar-container {
+            width: 100%;
+            height: 12px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .exp-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #a855f7, #ec4899);
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+        .exp-text {
+            text-align: center;
+            font-size: 12px;
+            color: #a855f7;
+            margin-top: 5px;
+        }
+        
+        .state-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .state-idle { background: rgba(100,100,100,0.5); }
+        .state-excited { background: rgba(255,215,0,0.5); color: #000; }
+        .state-eating { background: rgba(0,255,100,0.5); }
+        .state-evolved { background: linear-gradient(90deg, #a855f7, #ec4899); }
+        .state-eager { background: rgba(255,107,107,0.7); color: white; }
+        
+        .progress-section {
+            margin: 30px auto;
+            max-width: 600px;
+        }
+        .progress-label {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 40px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb);
+            border-radius: 18px;
+            transition: width 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-fill.near-full {
+            animation: progressGlow 0.5s ease-in-out infinite alternate;
+        }
+        @keyframes progressGlow {
+            from { box-shadow: 0 0 15px #ffd700; }
+            to { box-shadow: 0 0 40px #ffd700, 0 0 60px #ffd700; }
+        }
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            font-size: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 10;
+        }
+        
+        .gift-section {
+            margin: 30px auto;
+            max-width: 700px;
+        }
+        .gift-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #ffd700;
+        }
+        .gift-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+        .gift-btn {
+            padding: 15px 10px;
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .gift-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        .gift-btn span { display: block; font-size: 28px; margin-bottom: 5px; }
+        .gift-btn small { opacity: 0.9; }
+        
+        .tips {
+            text-align: center;
+            margin: 25px auto;
+            padding: 15px 20px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            max-width: 500px;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+        
+        .bubble-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 240px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 100;
+            pointer-events: none;
+        }
+        .contribution-bubble {
+            background: linear-gradient(135deg, rgba(255,107,107,0.95), rgba(254,202,87,0.95));
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 13px;
+            animation: bubbleSlideIn 0.4s ease;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        @keyframes bubbleSlideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .contribution-bubble strong { font-weight: bold; }
+        .contribution-bubble .progress-value { color: #ffd700; font-weight: bold; }
+        
+        .control-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.85);
+            padding: 20px 30px;
+            border-radius: 20px;
+            z-index: 200;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .control-title {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #ffd700;
+            font-weight: bold;
+        }
+        .control-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            max-width: 500px;
+        }
+        .control-btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .control-btn:hover { transform: scale(1.08); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .reset-btn { background: #e74c3c; margin-top: 10px; }
+        
+        .game-log {
+            position: fixed;
+            bottom: 150px;
+            left: 20px;
+            width: 300px;
+            max-height: 200px;
+            background: rgba(0,0,0,0.7);
+            border-radius: 10px;
+            padding: 15px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 11px;
+            z-index: 150;
+        }
+        .log-entry { margin: 3px 0; opacity: 0.9; }
+        .log-success { color: #00ff00; }
+        .log-warn { color: #ffc107; }
+        .log-info { color: #48dbfb; }
+        .log-levelup { color: #ff69b4; font-weight: bold; }
+        
+        .effect-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 50;
+        }
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            animation: particleFloat 3s ease-out forwards;
+        }
+        @keyframes particleFloat {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-100vh) scale(0); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🐱 1分钱喂猫咪</h1>
+        <p>抖音直播互动小玩法 - 完整演示版</p>
+    </div>
+    
+    <div class="bubble-container" id="bubbleContainer"></div>
+    <div class="effect-overlay" id="effectOverlay"></div>
+    
+    <div class="game-container">
+        <div class="cat-display">
+            <div class="cat-emoji cat-idle" id="catEmoji">😺</div>
+            <div class="cat-info-panel">
+                <div class="cat-indicators">
+                    <div class="cat-indicator active" id="ind-cyber" onclick="game.selectCat('cyber')" style="background:#00ffff;">
+                        😺
+                    </div>
+                    <div class="cat-indicator" id="ind-pitiful" onclick="game.selectCat('pitiful')" style="background:#ffb6c1;">
+                        😿
+                    </div>
+                    <div class="cat-indicator" id="ind-pixel" onclick="game.selectCat('pixel')" style="background:#00ff00;">
+                        😸
+                    </div>
+                </div>
+                
+                <div class="cat-header">
+                    <span class="cat-name" id="catName">赛博帅猫</span>
+                    <span class="cat-level" id="catLevel">Lv.1</span>
+                </div>
+                
+                <div class="exp-bar-container">
+                    <div class="exp-bar-fill" id="expFill" style="width: 0%"></div>
+                </div>
+                <div class="exp-text" id="expText">经验: 0 / 50</div>
+                
+                <div style="text-align:center;">
+                    <span class="state-badge state-idle" id="stateBadge">待机中</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="progress-section">
+            <div class="progress-label">🎯 公共进度条 (满值 1000)</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                <div class="progress-text" id="progressText">0 / 1000</div>
+            </div>
+        </div>
+        
+        <div class="gift-section">
+            <div class="gift-title">🎁 送礼物喂猫咪</div>
+            <div class="gift-grid">
+                <button class="gift-btn" style="background:linear-gradient(135deg,#ff6b6b,#ee5a5a)" onclick="game.sendGift('fairy_wand')">
+                    <span>🪄</span>仙女棒<br><small>+5进度</small>
+                </button>
+                <button class="gift-btn" style="background:linear-gradient(135deg,#28a745,#1e7e34)" onclick="game.sendGift('lollipop')">
+                    <span>🍭</span>棒棒糖<br><small>+5 (选猫)</small>
+                </button>
+                <button class="gift-btn" style="background:linear-gradient(135deg,#17a2b8,#117a8b)" onclick="game.sendGift('big_beer')">
+                    <span>🍺</span>大啤酒<br><small>+5进度</small>
+                </button>
+                <button class="gift-btn" style="background:linear-gradient(135deg,#48dbfb,#2cb5d6)" onclick="game.sendGift('popularity_ticket')">
+                    <span>🎫</span>人气票<br><small>+5进度</small>
+                </button>
+                <button class="gift-btn" style="background:linear-gradient(135deg,#ff9ff3,#f368e0)" onclick="game.sendGift('fairy_wand_bouquet')">
+                    <span>💐</span>花束<br><small>+40进度</small>
+                </button>
+                <button class="gift-btn" style="background:linear-gradient(135deg,#00ffff,#00ccff)" onclick="game.sendGift('power_pill')">
+                    <span>💊</span>能力药丸<br><small>+40 (选猫)</small>
+                </button>
+                <button class="gift-btn" style="background:linear-gradient(135deg,#ffb6c1,#e84393)" onclick="game.sendGift('donut')">
+                    <span>🍩</span>甜甜圈<br><small>+180 (选猫)</small>
+                </button>
+                <button class="gift-btn" style="background:linear-gradient(135deg,#ffd700,#f9ca24)" onclick="game.sendGift('confetti_cannon')">
+                    <span>🎉</span>礼花筒<br><small>+320进度</small>
+                </button>
+            </div>
+        </div>
+        
+        <div class="tips">
+            <div>💡 <strong>选猫技巧</strong></div>
+            <div>送 <span style="color:#00ffff">能力药丸</span> 选帅猫 | 送 <span style="color:#ffb6c1">甜甜圈</span> 选可怜猫 | 送 <span style="color:#00ff00">棒棒糖</span> 选淘气猫</div>
+            <div>送任何礼物都能增加进度条哦~</div>
+            <div style="margin-top:10px;">⌨️ <strong>快捷键</strong>: 1-8送礼 | C/P/X换猫 | R重置 | F快速填满 | M静音</div>
+        </div>
+    </div>
+    
+    <div class="control-panel">
+        <div class="control-title">🎮 测试控制</div>
+        <div class="control-buttons">
+            <button class="control-btn" style="background:#6c757d" onclick="game.quickFill()">快速填满</button>
+            <button class="control-btn" style="background:#17a2b8" onclick="game.addExp(50)">+50经验</button>
+            <button class="control-btn" style="background:#28a745" onclick="game.addExp(150)">+150经验</button>
+            <button class="control-btn" style="background:#28a745" onclick="game.saveState()">💾保存</button>
+            <button class="control-btn" style="background:#6c757d" onclick="game.resetWithClear()">🗑️清除存档</button>
+            <button class="control-btn reset-btn" onclick="game.reset()">🔄 重置(保留存档)</button>
+        </div>
+    </div>
+    
+    <div class="game-log" id="gameLog">
+        <div class="log-entry log-info">=== 游戏已就绪 ===</div>
+    </div>
+
+    <script>
+        /**
+         * 猫咪喂食游戏
+         */
+        const game = {
+            config: {
+                maxProgress: 1000,
+                excitedTimeout: 5000,
+                eatingDuration: 4000,
+                evolutionDuration: 3000,
+                thresholds: { 1: 0, 5: 50, 10: 200 }
+            },
+            
+            state: {
+                currentCat: 'cyber',
+                catState: 'idle',
+                level: 1,
+                exp: 0,
+                progress: 0
+            },
+            
+            _evolutionStage: 1,
+            
+            cats: {
+                cyber: { emoji: '😺', name: '赛博帅猫', filter: 'hue-rotate(180deg) saturate(1.5)', colors: ['#00ffff', '#0066ff', '#ff00ff'] },
+                pitiful: { emoji: '😿', name: '可怜猫', filter: 'saturate(0.8) brightness(0.95)', colors: ['#ffb6c1', '#ff69b4', '#ffc0cb'] },
+                pixel: { emoji: '😸', name: '像素淘气猫', filter: 'contrast(1.3) saturate(1.5)', colors: ['#00ff00', '#ffff00', '#ff6600'] }
+            },
+            
+            gifts: {
+                'fairy_wand': { name: '仙女棒', emoji: '🪄', progress: 5 },
+                'lollipop': { name: '棒棒糖', emoji: '🍭', progress: 5, selectCat: 'pixel' },
+                'big_beer': { name: '大啤酒', emoji: '🍺', progress: 5 },
+                'popularity_ticket': { name: '人气票', emoji: '🎫', progress: 5 },
+                'fairy_wand_bouquet': { name: '仙女棒花束', emoji: '💐', progress: 40 },
+                'power_pill': { name: '能力药丸', emoji: '💊', progress: 40, selectCat: 'cyber' },
+                'donut': { name: '甜甜圈', emoji: '🍩', progress: 180, selectCat: 'pitiful' },
+                'confetti_cannon': { name: '礼花筒', emoji: '🎉', progress: 320 }
+            },
+            
+            _excitedTimer: null,
+            _eatingTimer: null,
+            _evolvedTimer: null,
+            _audioCtx: null,
+            _soundEnabled: true,
+            _domCache: {},
+            
+            init() {
+                this.initDOMCache();
+                this.loadState();
+                this.renderAll();
+                this.initKeyboard();
+                this.log('info', '游戏初始化完成，点击礼物按钮开始测试！');
+                this.log('info', '快捷键: 1-8送礼 | C/P/X切换猫咪 | R重置 | F快速填满 | M静音');
+            },
+            
+            initDOMCache() {
+                this._domCache = {
+                    catEmoji: document.getElementById('catEmoji'),
+                    catName: document.getElementById('catName'),
+                    catLevel: document.getElementById('catLevel'),
+                    expFill: document.getElementById('expFill'),
+                    expText: document.getElementById('expText'),
+                    stateBadge: document.getElementById('stateBadge'),
+                    progressFill: document.getElementById('progressFill'),
+                    progressText: document.getElementById('progressText'),
+                    bubbleContainer: document.getElementById('bubbleContainer'),
+                    effectOverlay: document.getElementById('effectOverlay'),
+                    gameLog: document.getElementById('gameLog')
+                };
+            },
+            
+            saveState() {
+                try {
+                    const saveData = {
+                        currentCat: this.state.currentCat,
+                        level: this.state.level,
+                        exp: this.state.exp,
+                        _evolutionStage: this._evolutionStage,
+                        savedAt: Date.now()
+                    };
+                    localStorage.setItem('catGameState', JSON.stringify(saveData));
+                } catch (e) {
+                    this.log('warn', '保存失败：' + e.message);
+                }
+            },
+            
+            loadState() {
+                try {
+                    const saved = localStorage.getItem('catGameState');
+                    if (saved) {
+                        const data = JSON.parse(saved);
+                        if (data && typeof data === 'object') {
+                            this.state.currentCat = data.currentCat || 'cyber';
+                            this.state.level = Math.min(Math.max(Number(data.level) || 1, 1), 10);
+                            this.state.exp = Math.max(Number(data.exp) || 0, 0);
+                            this._evolutionStage = Math.min(Math.max(Number(data._evolutionStage) || 1, 1), 3);
+                            this.log('info', `已加载存档 (Lv.${this.state.level})`);
+                        }
+                    }
+                } catch (e) {
+                    this.log('warn', '加载失败：' + e.message);
+                }
+            },
+            
+            escapeHtml(str) {
+                if (typeof str !== 'string') return '';
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            },
+            
+            selectCat(catId) {
+                if (typeof catId !== 'string' || !this.cats[catId]) {
+                    this.log('warn', '无效的猫咪ID');
+                    return;
+                }
+                
+                if (this.state.catState === 'eating' || this.state.catState === 'evolved') {
+                    this.log('warn', '当前状态无法切换猫咪');
+                    return;
+                }
+                
+                if (this.state.currentCat !== catId) {
+                    this.state.currentCat = catId;
+                    this.log('success', `切换到: ${this.cats[catId].name}`);
+                    this.renderAll();
+                    this.saveState();
+                }
+            },
+            
+            sendGift(giftId) {
+                if (typeof giftId !== 'string' || !this.gifts[giftId]) {
+                    this.log('warn', `未知礼物: ${giftId}`);
+                    return;
+                }
+                
+                const gift = this.gifts[giftId];
+                
+                if (gift.selectCat) {
+                    this.selectCat(gift.selectCat);
+                }
+                
+                const userName = '观众' + Math.floor(Math.random() * 9999);
+                this.addBubble(userName, gift.name, gift.progress);
+                
+                this.addProgress(gift.progress);
+                this.triggerExcited();
+                this.playSound('gift');
+            },
+            
+            addProgress(value) {
+                if (typeof value !== 'number' || isNaN(value)) {
+                    this.log('warn', '无效的进度值');
+                    return;
+                }
+                
+                value = Math.max(0, value);
+                const oldProgress = this.state.progress;
+                this.state.progress = Math.min(this.state.progress + value, this.config.maxProgress);
+                const actualAdded = this.state.progress - oldProgress;
+                
+                if (actualAdded > 0) {
+                    this.log('info', `进度 +${actualAdded} → ${this.state.progress}/${this.config.maxProgress}`);
+                    this.saveState();
+                    
+                    if (this.state.progress >= this.config.maxProgress && oldProgress < this.config.maxProgress) {
+                        this.onProgressFull();
+                    }
+                    
+                    this.renderProgress();
+                    this.updateEagerState();
+                }
+            },
+            
+            updateEagerState() {
+                if (this.state.catState !== 'idle') return;
+                
+                const percentage = (this.state.progress / this.config.maxProgress) * 100;
+                if (percentage >= 80) {
+                    this.log('info', '🎯 进度快满了！猫咪开始期待~');
+                }
+            },
+            
+            triggerExcited() {
+                if (this.state.catState === 'eating' || this.state.catState === 'evolved') return;
+                
+                this.setCatState('excited');
+                
+                if (this._excitedTimer) clearTimeout(this._excitedTimer);
+                this._excitedTimer = setTimeout(() => {
+                    if (this.state.catState === 'excited') {
+                        this.setCatState('idle');
+                        this.log('warn', '超时无礼物，返回待机');
+                    }
+                }, this.config.excitedTimeout);
+            },
+            
+            onProgressFull() {
+                this.log('success', '🎉 进度条已满! 开始喂食!');
+                
+                if (this._excitedTimer) {
+                    clearTimeout(this._excitedTimer);
+                    this._excitedTimer = null;
+                }
+                
+                this.setCatState('eating');
+                this.playEffect('eating');
+                this.playSound('eat');
+                
+                const expGain = 10 + Math.floor(this.state.progress / 100);
+                this.addExp(expGain);
+                
+                this._eatingTimer = setTimeout(() => {
+                    this.onEatingEnd();
+                }, this.config.eatingDuration);
+            },
+            
+            onEatingEnd() {
+                this.log('info', '喂食动画结束');
+                this._eatingTimer = null;
+                
+                const shouldEvolve = this.checkEvolution();
+                
+                if (shouldEvolve) {
+                    this._evolutionStage = this._evolutionStage + 1;
+                    
+                    this.setCatState('evolved');
+                    this.playEffect('evolved');
+                    this.playSound('evolve');
+                    
+                    this._evolvedTimer = setTimeout(() => {
+                        this._evolvedTimer = null;
+                        this.setCatState('idle');
+                        this.resetProgress();
+                    }, this.config.evolutionDuration);
+                } else {
+                    this.setCatState('idle');
+                    this.resetProgress();
+                }
+            },
+            
+            checkEvolution() {
+                let targetStage = 1;
+                if (this.state.level >= 10) {
+                    targetStage = 3;
+                } else if (this.state.level >= 5) {
+                    targetStage = 2;
+                }
+                return targetStage > this._evolutionStage;
+            },
+            
+            addExp(value) {
+                if (typeof value !== 'number' || isNaN(value)) {
+                    this.log('warn', '无效的经验值');
+                    return;
+                }
+                
+                value = Math.max(0, value);
+                const oldLevel = this.state.level;
+                this.state.exp += value;
+                
+                if (this.state.exp >= this.config.thresholds[10] && this.state.level < 10) {
+                    this.state.level = 10;
+                    this.log('levelup', `🎉 升到 Lv.10! 第三次进化!`);
+                    this.playSound('levelup');
+                    this.saveState();
+                } else if (this.state.exp >= this.config.thresholds[5] && this.state.level < 5) {
+                    this.state.level = 5;
+                    this.log('levelup', `✨ 升到 Lv.5! 第二次进化!`);
+                    this.playSound('levelup');
+                    this.saveState();
+                }
+                
+                this.renderExp();
+                this.renderCatInfo();
+            },
+            
+            setCatState(newState) {
+                this.state.catState = newState;
+                this.renderCatState();
+            },
+            
+            resetProgress() {
+                this.state.progress = 0;
+                this.renderProgress();
+            },
+            
+            quickFill() {
+                this.addProgress(this.config.maxProgress - this.state.progress);
+            },
+            
+            playEffect(type) {
+                const cat = this.cats[this.state.currentCat];
+                const overlay = this._domCache.effectOverlay;
+                overlay.innerHTML = '';
+                
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                const count = isMobile ? (type === 'evolved' ? 30 : 20) : (type === 'evolved' ? 50 : 30);
+                const colors = cat.colors;
+                
+                const fragment = document.createDocumentFragment();
+                for (let i = 0; i < count; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.cssText = `
+                        left: ${Math.random() * 100}%;
+                        bottom: 0;
+                        width: ${5 + Math.random() * 15}px;
+                        height: ${5 + Math.random() * 15}px;
+                        background: ${colors[Math.floor(Math.random() * colors.length)]};
+                        animation-delay: ${Math.random() * 0.5}s;
+                        animation-duration: ${2 + Math.random() * 2}s;
+                    `;
+                    fragment.appendChild(particle);
+                }
+                overlay.appendChild(fragment);
+                
+                if (this._effectTimer) clearTimeout(this._effectTimer);
+                this._effectTimer = setTimeout(() => { 
+                    overlay.innerHTML = ''; 
+                }, 3500);
+            },
+            
+            addBubble(userName, giftName, value) {
+                const container = this._domCache.bubbleContainer;
+                
+                while (container.children.length >= 8) {
+                    container.removeChild(container.firstChild);
+                }
+                
+                const bubble = document.createElement('div');
+                bubble.className = 'contribution-bubble';
+                bubble.innerHTML = `<strong>${this.escapeHtml(userName)}</strong> 送了 ${this.escapeHtml(giftName)}<br><span class="progress-value">+${value}</span>`;
+                container.appendChild(bubble);
+                
+                setTimeout(() => {
+                    if (bubble.parentNode) {
+                        bubble.style.opacity = '0';
+                        bubble.style.transform = 'translateX(100%)';
+                        bubble.style.transition = 'all 0.3s';
+                        setTimeout(() => bubble.remove(), 300);
+                    }
+                }, 3000);
+            },
+            
+            renderAll() {
+                this.renderCatInfo();
+                this.renderCatState();
+                this.renderProgress();
+                this.renderExp();
+            },
+            
+            renderCatInfo() {
+                const cat = this.cats[this.state.currentCat];
+                const cache = this._domCache;
+                
+                cache.catEmoji.textContent = cat.emoji;
+                cache.catEmoji.style.filter = cat.filter;
+                cache.catName.textContent = cat.name;
+                cache.catLevel.textContent = `Lv.${this.state.level}`;
+                
+                ['cyber', 'pitiful', 'pixel'].forEach(id => {
+                    document.getElementById('ind-' + id).classList.toggle('active', id === this.state.currentCat);
+                });
+            },
+            
+            renderCatState() {
+                const cache = this._domCache;
+                const percentage = (this.state.progress / this.config.maxProgress) * 100;
+                
+                let stateToRender = this.state.catState;
+                if (this.state.catState === 'idle' && percentage >= 80) {
+                    stateToRender = 'eager';
+                }
+                
+                const stateLabels = { 
+                    idle: '待机中', 
+                    eager: '快满了~', 
+                    excited: '期待中~', 
+                    eating: '进食中...', 
+                    evolved: '进化中!' 
+                };
+                
+                cache.catEmoji.className = 'cat-emoji cat-' + stateToRender;
+                cache.stateBadge.textContent = stateLabels[stateToRender];
+                cache.stateBadge.className = 'state-badge state-' + stateToRender;
+            },
+            
+            renderProgress() {
+                const percentage = (this.state.progress / this.config.maxProgress) * 100;
+                const fill = this._domCache.progressFill;
+                
+                fill.style.width = percentage + '%';
+                fill.classList.toggle('near-full', percentage >= 80);
+                this._domCache.progressText.textContent = `${this.state.progress} / ${this.config.maxProgress}`;
+            },
+            
+            renderExp() {
+                let nextThreshold = this.config.thresholds[5];
+                let prevThreshold = 0;
+                
+                if (this.state.level >= 10) {
+                    nextThreshold = this.config.thresholds[10];
+                    prevThreshold = this.config.thresholds[10];
+                } else if (this.state.level >= 5) {
+                    nextThreshold = this.config.thresholds[10];
+                    prevThreshold = this.config.thresholds[5];
+                }
+                
+                const expInLevel = this.state.exp - prevThreshold;
+                const expNeeded = nextThreshold - prevThreshold;
+                const percentage = expNeeded > 0 ? Math.min(100, (expInLevel / expNeeded) * 100) : 100;
+                
+                this._domCache.expFill.style.width = percentage + '%';
+                
+                if (this.state.level >= 10) {
+                    this._domCache.expText.textContent = `经验: ${this.state.exp} (满级)`;
+                } else {
+                    this._domCache.expText.textContent = `经验: ${this.state.exp} / ${nextThreshold}`;
+                }
+            },
+            
+            reset(clearStorage = false) {
+                if (this._excitedTimer) clearTimeout(this._excitedTimer);
+                if (this._eatingTimer) clearTimeout(this._eatingTimer);
+                if (this._evolvedTimer) clearTimeout(this._evolvedTimer);
+                if (this._effectTimer) clearTimeout(this._effectTimer);
+                
+                this.state = {
+                    currentCat: 'cyber',
+                    catState: 'idle',
+                    level: 1,
+                    exp: 0,
+                    progress: 0
+                };
+                this._excitedTimer = null;
+                this._eatingTimer = null;
+                this._evolvedTimer = null;
+                this._effectTimer = null;
+                this._evolutionStage = 1;
+                
+                this._domCache.effectOverlay.innerHTML = '';
+                this._domCache.bubbleContainer.innerHTML = '';
+                
+                if (clearStorage) {
+                    localStorage.removeItem('catGameState');
+                }
+                
+                this.log('warn', clearStorage ? '游戏已重置，存档已清除' : '游戏已重置');
+                this.renderAll();
+            },
+            
+            clearStorage() {
+                try {
+                    localStorage.removeItem('catGameState');
+                    this.log('info', '存档已清除');
+                } catch (e) {
+                    this.log('warn', '清除失败');
+                }
+            },
+            
+            resetWithClear() {
+                this.reset(true);
+            },
+            
+            initKeyboard() {
+                const giftKeys = {
+                    '1': 'fairy_wand',
+                    '2': 'lollipop',
+                    '3': 'big_beer',
+                    '4': 'popularity_ticket',
+                    '5': 'fairy_wand_bouquet',
+                    '6': 'power_pill',
+                    '7': 'donut',
+                    '8': 'confetti_cannon'
+                };
+                
+                const catKeys = {
+                    'c': 'cyber',
+                    'p': 'pitiful',
+                    'x': 'pixel'
+                };
+                
+                document.addEventListener('keydown', (e) => {
+                    const key = e.key.toLowerCase();
+                    
+                    if (giftKeys[key]) {
+                        e.preventDefault();
+                        this.sendGift(giftKeys[key]);
+                    } else if (catKeys[key]) {
+                        e.preventDefault();
+                        this.selectCat(catKeys[key]);
+                    } else if (key === 'r') {
+                        e.preventDefault();
+                        this.reset();
+                    } else if (key === 'f') {
+                        e.preventDefault();
+                        this.quickFill();
+                    } else if (key === 'm') {
+                        e.preventDefault();
+                        this.toggleSound();
+                    }
+                });
+            },
+            
+            toggleSound() {
+                this._soundEnabled = !this._soundEnabled;
+                this.log('info', `音效已${this._soundEnabled ? '开启' : '关闭'}`);
+            },
+            
+            playSound(type) {
+                if (!this._soundEnabled) return;
+                
+                try {
+                    if (!this._audioCtx) {
+                        this._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    
+                    const ctx = this._audioCtx;
+                    const oscillator = ctx.createOscillator();
+                    const gainNode = ctx.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(ctx.destination);
+                    
+                    switch(type) {
+                        case 'gift':
+                            oscillator.frequency.setValueAtTime(800, ctx.currentTime);
+                            oscillator.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+                            gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                            oscillator.start(ctx.currentTime);
+                            oscillator.stop(ctx.currentTime + 0.15);
+                            break;
+                        case 'eat':
+                            oscillator.type = 'sine';
+                            oscillator.frequency.setValueAtTime(400, ctx.currentTime);
+                            oscillator.frequency.setValueAtTime(600, ctx.currentTime + 0.1);
+                            oscillator.frequency.setValueAtTime(400, ctx.currentTime + 0.2);
+                            gainNode.gain.setValueAtTime(0.15, ctx.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                            oscillator.start(ctx.currentTime);
+                            oscillator.stop(ctx.currentTime + 0.3);
+                            break;
+                        case 'levelup':
+                            oscillator.type = 'sine';
+                            oscillator.frequency.setValueAtTime(523, ctx.currentTime);
+                            oscillator.frequency.setValueAtTime(659, ctx.currentTime + 0.1);
+                            oscillator.frequency.setValueAtTime(784, ctx.currentTime + 0.2);
+                            oscillator.frequency.setValueAtTime(1047, ctx.currentTime + 0.3);
+                            gainNode.gain.setValueAtTime(0.15, ctx.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                            oscillator.start(ctx.currentTime);
+                            oscillator.stop(ctx.currentTime + 0.5);
+                            break;
+                        case 'evolve':
+                            oscillator.type = 'sawtooth';
+                            oscillator.frequency.setValueAtTime(200, ctx.currentTime);
+                            oscillator.frequency.exponentialRampToValueAtTime(2000, ctx.currentTime + 0.5);
+                            gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
+                            oscillator.start(ctx.currentTime);
+                            oscillator.stop(ctx.currentTime + 0.6);
+                            break;
+                    }
+                } catch (e) {
+                    // 静默失败，不影响游戏
+                }
+            },
+            
+            log(type, message) {
+                const logDiv = this._domCache.gameLog;
+                if (!logDiv) return;
+                
+                const entry = document.createElement('div');
+                entry.className = 'log-entry log-' + type;
+                entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+                logDiv.appendChild(entry);
+                logDiv.scrollTop = logDiv.scrollHeight;
+                
+                while (logDiv.children.length > 50) {
+                    logDiv.removeChild(logDiv.firstChild);
+                }
+            }
+        };
+        
+        window.addEventListener('load', () => {
+            game.init();
+        });
+    </script>
+</body>
+</html>
