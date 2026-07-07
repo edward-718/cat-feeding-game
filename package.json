@@ -1,0 +1,24 @@
+{
+  "name": "cat-feeding-game",
+  "version": "1.0.0",
+  "description": "1分钱喂猫咪 - 抖音直播互动小玩法",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "lint": "eslint assets/scripts/**/*.ts",
+    "test": "jest"
+  },
+  "keywords": [
+    "cocos-creator",
+    "douyin",
+    "live-game",
+    "cat"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.9.3"
+  }
+}
