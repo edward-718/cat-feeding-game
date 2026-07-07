@@ -1,0 +1,70 @@
+{
+  "gifts": [
+    {
+      "id": "fairy_wand",
+      "name": "仙女棒",
+      "price": 1,
+      "function": "feed",
+      "progressValue": 5,
+      "catId": null
+    },
+    {
+      "id": "lollipop",
+      "name": "棒棒糖",
+      "price": 1,
+      "function": "select_feed",
+      "progressValue": 5,
+      "catId": "pixel_cat"
+    },
+    {
+      "id": "big_beer",
+      "name": "大啤酒",
+      "price": 1,
+      "function": "feed",
+      "progressValue": 5,
+      "catId": null
+    },
+    {
+      "id": "popularity_ticket",
+      "name": "人气票",
+      "price": 1,
+      "function": "feed",
+      "progressValue": 5,
+      "catId": null
+    },
+    {
+      "id": "fairy_wand_bouquet",
+      "name": "仙女棒花束",
+      "price": 10,
+      "function": "feed",
+      "progressValue": 40,
+      "catId": null
+    },
+    {
+      "id": "power_pill",
+      "name": "能力药丸",
+      "price": 10,
+      "function": "select_feed",
+      "progressValue": 40,
+      "catId": "cyber_cat"
+    },
+    {
+      "id": "donut",
+      "name": "甜甜圈",
+      "price": 52,
+      "function": "select_feed",
+      "progressValue": 180,
+      "catId": "pitiful_cat"
+    },
+    {
+      "id": "confetti_cannon",
+      "name": "礼花筒",
+      "price": 99,
+      "function": "feed",
+      "progressValue": 320,
+      "catId": null
+    }
+  ],
+  "maxProgress": 1000,
+  "excitedTimeout": 5000
+}
